@@ -1,0 +1,625 @@
+---
+title: Feet 4 Hands
+subtitle: Fantasy EPL Statistics & Shhhh-housery
+author: Brandon F. Terrizzi, PhD
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+   prettydoc::html_pretty:
+    theme: leonids
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+
+# set defaults for code/messages/figures, etc. 
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, fig.align = "center")
+
+# load packages
+library(tidyverse)
+library(knitr) # for include_graphics()
+
+# source files that contain many of the functions implemented below
+source("/Users/brandon/Desktop/FPL Tool/FPL wrangling functions.R") # for wrangling functions
+source("/Users/brandon/Desktop/FPL Tool/FPL color palettes.R") # for color palettes
+
+```
+  
+```{r  out.width = "100%", out.height = "5%"}
+include_graphics("/Users/brandon/Desktop/FPL Tool/images/feet4hands.jpg") 
+```
+
+## Checking In
+**Gameweek 7** behind us, **Gameweek 8** ahead. How are you feeling? Uncertain? Scared? Has all of your tinkering and planning blown up in your face? If so, you're not alone. There are almost 7.5 million fantasy managers this season. The fact that you are even here reading this crap means you are engaged enough that there are probably more managers behind you in the rankings than in front of you. It's the silver lining we focus on here people. We may not be the best around here, but we're the best of the rest amirite?  
+  
+Personally, I spent last week ignoring my own advice and now sit precariosuly close to falling outside the top 1mil. The lesson here is the same as it always is: Do as **Feet 4** say and not as **Feet 4** do.    
+  
+We are all facing deep questions this week. Is **Liverpool**'s defense in tatters? Are **Tottenham** managing to do *just* enough to keep us interested in their attacking players? Is Ole driving a speeding clown car called **Manchester United** down a gravel mountain road, and where have all of **Manchester City**'s cowboys gone? These are important questions that need answers.
+  
+For now, we're here to have a look at the data, the **tangibles**, and try to divine their nature. Thankfully, your boy **Feet 4** has been hacking, snatching data directly from the vaults of the FPL ivory tower, and is ready to serve up insights.
+  
+  
+## "So Far's" All-Star Team  
+  
+### Top Players by Total Points
+
+Note: Players tied for points will be included.
+
+```{r}
+
+### 3-4-3
+data <- topPlayers() # sourced from "FPL wrangling functions.R", pulls the top 10 highest scoring players in each position
+
+####  "formation" changes with call to top_n()
+fwds <- data %>% filter(position == "Forward") %>% top_n(3, total_points) 
+mids <- data %>% filter(position == "Midfielder") %>% top_n(4, total_points)
+defs <- data %>% filter(position == "Defender") %>% top_n(3, total_points)
+gks <- data %>% filter(position == "Goalkeeper") %>% top_n(1, total_points)
+data <- rbind(fwds, mids, defs, gks) # bind position data together again for figure
+```
+  
+```{r}
+# plot top players
+ggplot(data, aes(reorder(second_name,total_points), total_points, fill = position)) + 
+        geom_col(color = "black", alpha = .8) + 
+        coord_flip() + # flip the x/y coordinates so player names are on the left/y axis
+        scale_fill_manual(values = positionPalette$color) + # sourced from "FPL color palletes.R"
+        labs(x = "", y = "total points")  +
+        facet_wrap(~position, ncol = 1, scale = "free_y") + 
+        theme_gray() + 
+        theme(axis.text.x = element_text(size = 12, face = "bold", hjust = .90),
+              axis.text.y = element_text(size = 12, face = "bold"),
+              axis.title.y = element_text(size = 12, face = "bold", vjust = 2.5),
+              strip.text.x = element_text(size = 12, face = "bold"),
+              legend.position = "none")
+
+```
+  
+  
+## Forward Focus  
+  
+```{r}
+# pull the top 10 highest scoring forwards
+data <- topForwards() %>% # sourced from "FPL wrangling functions.R"
+        select(second_name, goals_scored, assists, bonus, bps, influence, creativity, threat, ict_index, team_strength)
+
+# Plot number of goals, assists, and bonus points:
+goals <- ggplot(data, aes(reorder(second_name,-goals_scored), goals_scored)) + 
+        labs(x = "", y = "# of goals")  +
+        geom_col(color = "black", alpha = .8, 
+                 fill = positionPalette$color[positionPalette$position == "forwards"]) + #sourced as before
+        theme_gray() + 
+        theme(axis.text.x = element_text(size = 12, face = "bold", angle = 90, vjust = 0.5, hjust=1),
+              axis.text.y = element_text(size = 12, face = "bold"),
+              axis.title.y = element_text(size = 12, face = "bold", vjust = 2.5),
+              strip.text.x = element_text(size = 12, face = "bold"),
+              legend.position = "none")
+
+assists <- ggplot(data, aes(reorder(second_name,-assists), assists)) + 
+        labs(x = "", y = "# of assists")  +
+        geom_col(color = "black", alpha = .8, 
+                 fill = positionPalette$color[positionPalette$position == "forwards"]) + 
+        theme_gray() + 
+        theme(axis.text.x = element_text(size = 12, face = "bold", angle = 90, vjust = 0.5, hjust=1),
+              axis.text.y = element_text(size = 12, face = "bold"),
+              axis.title.y = element_text(size = 12, face = "bold", vjust = 2.5),
+              strip.text.x = element_text(size = 12, face = "bold"),
+              legend.position = "none")
+
+bonus <- ggplot(data, aes(reorder(second_name,-bonus), bonus)) + 
+        labs(x = "", y = "bonus points")  +
+        geom_col(color = "black", alpha = .8, 
+                 fill = positionPalette$color[positionPalette$position == "forwards"]) + 
+        theme_gray() + 
+        theme(axis.text.x = element_text(size = 12, face = "bold", angle = 90, vjust = 0.5, hjust=1),
+              axis.text.y = element_text(size = 12, face = "bold"),
+              axis.title.y = element_text(size = 12, face = "bold", vjust = 2.5),
+              strip.text.x = element_text(size = 12, face = "bold"),
+              legend.position = "none")
+
+library(gridExtra)
+grid.arrange(goals, assists,bonus, nrow = 1)
+```
+
+**Goals**: Plenty of surprises across this metric. Few would have predicted DCL leading the goal-scoring pack at **any** point in the season, but there he sits with his nose sticking out as if Usain Bolt is on his heels.  
+**Noteworthy** All of **DCL**'s 8 goals have come from open play. His closest rival (**Vardy**) has also scored 8, but 6 of these have been from the penatly spot. If **Leicester** stop getting penalties, than Vardy's primary soource of goals dry up. Vardy is a clinical striker, but it remains to be seen if Leicester can create the opportunities that he needs to score at the same rate that **Everton** have managed to do so far this season. 
+
+**Assists**: Kane's appearance at the top of the list (with more than 2x the assists of his closest rival) indicates just how significantly his role has changed at Spurs under Mourinho's tenure. From whispers of a possible move to Real Madrid, to Son's assist-ant is a huge transformation, showing just how much deeper he is playing this season than in years past. 
+  
+
+**Bonus** Let's be honest, nobody knows how the brains in the FPL ivory tower allocate bonus points, but it means *something* about their oveall impact on the game. But who really cares so long as our overall points are going up? So, which of our potential strikers might be coming with a cherry on top next week?   
+  
+Although we have been singing his praises, **DCL** falls in the middle of this list, suggesting that while he is scoring goals, he may not be doing much else on the pitch. Since assists, goals, and defensive work translate into fantasy points, becoming over-reliant on DCL for your attacking points is probably not a good strategy. You are going to need to pair one of Kane and DCL with another potent striker to maximize returns. 
+  
+## Midfield Medley:  
+  
+```{r}
+data <- topMidfielders() %>% 
+        select(second_name, goals_scored, assists, bonus, bps, influence, creativity, threat, ict_index, team_strength)
+
+
+goals <- ggplot(data, aes(reorder(second_name,-goals_scored), goals_scored)) + 
+        labs(x = "", y = "# of goals")  +
+        geom_col(color = "black", alpha = .8, 
+                 fill = positionPalette$color[positionPalette$position == "midfielders"]) + 
+        theme_gray() + 
+        theme(axis.text.x = element_text(size = 12, face = "bold", angle = 90, vjust = 0.5, hjust=1),
+              axis.text.y = element_text(size = 12, face = "bold"),
+              axis.title.y = element_text(size = 12, face = "bold", vjust = 2.5),
+              strip.text.x = element_text(size = 12, face = "bold"),
+              legend.position = "none")
+
+
+assists <- ggplot(data, aes(reorder(second_name,-assists), assists)) + 
+        labs(x = "", y = "# of assists")  +
+        geom_col(color = "black", alpha = .8, 
+                 fill = positionPalette$color[positionPalette$position == "midfielders"]) + 
+        theme_gray() + 
+        theme(axis.text.x = element_text(size = 12, face = "bold", angle = 90, vjust = 0.5, hjust=1),
+              axis.text.y = element_text(size = 12, face = "bold"),
+              axis.title.y = element_text(size = 12, face = "bold", vjust = 2.5),
+              strip.text.x = element_text(size = 12, face = "bold"),
+              legend.position = "none")
+
+bonus <- ggplot(data, aes(reorder(second_name,-bonus), bonus)) + 
+        labs(x = "", y = "bonus points")  +
+        geom_col(color = "black", alpha = .8, 
+                 fill = positionPalette$color[positionPalette$position == "midfielders"]) + 
+        theme_gray() + 
+        theme(axis.text.x = element_text(size = 12, face = "bold", angle = 90, vjust = 0.5, hjust=1),
+              axis.text.y = element_text(size = 12, face = "bold"),
+              axis.title.y = element_text(size = 12, face = "bold", vjust = 2.5),
+              strip.text.x = element_text(size = 12, face = "bold"),
+              legend.position = "none")
+
+library(gridExtra)
+grid.arrange(goals, assists, bonus, nrow = 1)
+
+```
+
+**Goals** Things are a little more familiar in the midfield. **Hueng Min Son** leads the scoring charts (in part because of Harry Kane's assists), but our comforl blanket **Mohammed Salah** is still there close behind him.
+  
+**Assists** If you wanted a headache, there it is is **assists**. Pretty boy **Jack Grealish** is our most generous team-mate but those immediatly around him... not the kind of players you'd want to invest in long term.
+
+**Bonus** **Son** is bagging and bragging so far with bonus points. 
+  
+## Defensive Detour:  
+    
+```{r}
+data <- topDefenders() %>% 
+        select(second_name, goals_scored, clean_sheets, assists, bonus, bps, influence, creativity, threat, ict_index, team_strength)
+
+goals <- ggplot(data, aes(reorder(second_name,-goals_scored), goals_scored)) + 
+        labs(x = "", y = "# of goals")  +
+        geom_col(color = "black", alpha = .8, 
+                 fill = positionPalette$color[positionPalette$position == "defenders"]) + 
+        theme_gray() + 
+        theme(axis.text.x = element_text(size = 12, face = "bold", angle = 90, vjust = 0.5, hjust=1),
+              axis.text.y = element_text(size = 12, face = "bold"),
+              axis.title.y = element_text(size = 12, face = "bold", vjust = 2.5),
+              strip.text.x = element_text(size = 12, face = "bold"),
+              legend.position = "none")
+
+assists <- ggplot(data, aes(reorder(second_name,-assists), assists)) + 
+        labs(x = "", y = "# of assists")  +
+        geom_col(color = "black", alpha = .8, 
+                 fill = positionPalette$color[positionPalette$position == "defenders"]) + 
+        theme_gray() + 
+        theme(axis.text.x = element_text(size = 12, face = "bold", angle = 90, vjust = 0.5, hjust=1),
+              axis.text.y = element_text(size = 12, face = "bold"),
+              axis.title.y = element_text(size = 12, face = "bold", vjust = 2.5),
+              strip.text.x = element_text(size = 12, face = "bold"),
+              legend.position = "none")
+
+clean <- ggplot(data, aes(reorder(second_name,-clean_sheets), clean_sheets)) + 
+        labs(x = "", y = "# of clean sheets")  +
+        geom_col(color = "black", alpha = .8, 
+                 fill = positionPalette$color[positionPalette$position == "defenders"]) + 
+        theme_gray() + 
+        theme(axis.text.x = element_text(size = 12, face = "bold", angle = 90, vjust = 0.5, hjust=1),
+              axis.text.y = element_text(size = 12, face = "bold"),
+              axis.title.y = element_text(size = 12, face = "bold", vjust = 2.5),
+              strip.text.x = element_text(size = 12, face = "bold"),
+              legend.position = "none")
+
+library(gridExtra)
+grid.arrange(goals, assists, clean, nrow = 1)
+
+```  
+  
+**Goals** Not as important for our defenders, but **Kurt Zouma** has been a menace for opposition teams on set pieces. 
+  
+**Assists**: I don't know about you, but there is **no chance** of me allocating any fantasy real estate to **Hector Bellerin** or any other **Arsenal** defensive player. My eye is caught by **Chilwell** who has bagged a goal and two assists despite limited playing time at **Chelsea.**   
+
+**Clean sheets** Again, the take-away for me here is **Chilwell**. 
+  
+## Prediction Zone  
+```{r  out.width = "100%", out.height = "10%"}
+include_graphics("/Users/brandon/Desktop/FPL Tool/images/precog.jpg") 
+```
+
+The FPL ivory tower calculates some metrics 
+### N = all 599 premier league players
+
+Bivariate correlations between various metrics and **total points**. 
+```{r}
+data <- wrangleFPL() %>% # sourced from "FPL wrangling functions.R", calls all players
+        select(total_points, 
+               ep_next, 
+               ep_this, 
+               event_points,
+               form, 
+               now_cost, 
+               points_per_game, 
+               selected_by_percent, 
+               influence, 
+               creativity, 
+               threat, 
+               team_strength) %>% 
+        mutate(total_points = as.numeric(total_points), 
+               ep_next = as.numeric(ep_next), 
+               ep_this = as.numeric(ep_this), 
+               event_points = as.numeric(event_points),
+               form = as.numeric(form), 
+               now_cost = as.numeric(now_cost), 
+               points_per_game = as.numeric(points_per_game), 
+               selected_by_percent = as.numeric(selected_by_percent), 
+               influence = as.numeric(influence), 
+               creativity = as.numeric(creativity), 
+               threat = as.numeric(threat), 
+               team_strength = as.numeric(team_strength)) %>% 
+        filter(total_points > 0)
+```
+
+```{r}
+
+library(Hmisc) # for cor(), cor.mtest() 
+library(corrplot) # for corrplort()
+
+mydata.cor = cor(data, method = "spearman") # create correlation matrix
+sigTest <- cor.mtest(data, conf.level = .95) # perform significance tests
+
+# create figure
+corrplot(mydata.cor,
+         method = "ellipse",
+         type = "upper",
+         # p.mat = sigTest$p, 
+         # sig.level = .05,
+         # insig = "blank", # potential to leave statistically insig. corrs blank
+         tl.srt = 45,
+         addgrid.col = "black",
+         tl.col = "black", 
+         col = colorRampPalette(c("#08d9d6","#252a34","#ff2e63"))(10)) # chose 8 level
+
+```
+  
+I can hear you now: "What is this sorcery?!". Don't worry.       
+This is just a matrix of pictures (not the Keanu Reeves type) that we can use to better understand the relationship between different fantasy-relevant variables that we hear about on the internet. Looking at the **direction** and **width** of the ellipse in each square tells us **a lot** about the relationship between these variables.  
+
+Start with the top-right most square. The ellipse in that square shows the relationship between **total_points** and **total_points**. Yes, those are the same thing. That's why there's a straigtt line going up from left to right. If we zoomed in, this would look like this:  
+  
+```{r}
+ggplot(data, aes(x = total_points, y = total_points)) + 
+        labs(x = "Total Points", y = "Total Points") + 
+        geom_point(shape = 21, size = 3, color = "black", fill = "red", alpha = .5, 
+                   position = position_jitter(width = 1)) +
+        theme_minimal()
+```
+  
+  
+Each individual dot represents the total points for a single premier league player, and that's Salan, Son, and Kane sticking way out there. As total points increases (on x axis), total points necessarily increases (y axis). 
+  
+Relationships between variables that are not identical to each other are more "fuzzy". Take the picture directly to the right depicting the relationship between **total_points** and **ep_next** (these are expected points in the coming gameeweek). These are positively related (think about it!) but that relationship is also more fuzzy. If we zoom in that relationship looks like this: 
+
+```{r}
+ggplot(data, aes(x = total_points, ep_next)) + 
+        labs(x = "Total Points", y = "Expected Points") + 
+        geom_point(shape = 21, size = 3, color = "black", fill = "red", alpha = .5, 
+                   position = position_jitter(width = 1)) +
+        theme_minimal()
+```
+
+Again, a clear positive relationship but with some variability.  
+  
+Even fuzzier relationships exist, say between **now_cost** (player cost right now) and **total_points**. That relationship looks like this:
+
+```{r}
+ggplot(data, aes(x = now_cost*.1, total_points)) + 
+        labs(x = "Cost Right Now (millions of pounds)", y = "Total Points") + 
+        geom_point(shape = 21, size = 3, color = "black", fill = "red", alpha = .5, 
+                   position = position_jitter(width = 1)) +
+        theme_minimal()
+```
+
+A clear relationship, but even more variability. Our ability to predict a players' total points from their cost is definitely not as good as reliable as our ability to predict those points from information about either their total points (duh!) or expected points. Now, let's look at each square and see which variables look like the **best** predictors of total_points at this point in the season...   
+  
+   
+My eye is caught by: form, points per game, influence, and creativity. These variables seem to have the steepest and narrowest relationship with total points. For now, let's ignore points per game. It's obvious that a player who scores a large number of points per game is going to have a higher points total, right? So what about these more abstract categories of "form", "influence", and "creativity"?  
+  
+Moreover, keep in mind that the relaionships depicted in the matrix are for **ALL** players, but that does not guarantee that the relationship between two variables is the same for every position.  
+  
+```{r}
+data <- wrangleFPL() %>% # sourced from "FPL wrangling functions.R", calls all players
+        select(total_points, 
+               position, 
+               second_name, 
+               form, 
+               points_per_game, 
+               influence, 
+               creativity, 
+               threat, 
+               team_strength, 
+               now_cost,
+               value_season) %>% 
+        mutate(total_points = as.numeric(total_points),
+               position = factor(position, levels = c("Goalkeeper", "Defender", "Midfielder", "Forward")),  
+               form = as.numeric(form), 
+               influence = as.numeric(influence), 
+               creativity = as.numeric(creativity), 
+               threat = as.numeric(threat), 
+               team_strength = as.numeric(team_strength)) %>% 
+        filter(total_points > 0)
+```
+  
+  
+### Form
+
+$$ Form = total points/#games played in last 30 days $$
+Really, a players' form is really just their average points per game in recent weeks.  
+So, we sould expect that form will be positively correlated with total points, but that relationship could be a little fuzzy because maybe a player scored all their points in the first two games weeks and has stinkers since then. Let's see what this looks like for each position: 
+
+```{r}
+
+library(ggrepel) # for geom_label_repel() which substitutes defualt geom_label()
+ggplot(data, aes(x = form, y = total_points, label = second_name, fill = position)) + 
+  labs(x = "Form", y = "Total Points") + 
+  geom_point(shape = 21,size = 3, alpha = .5, 
+             position = position_jitter(width = 1)) +
+  scale_fill_manual(values = positionPalette$color) + 
+  stat_smooth(method = "lm", color = "black") + 
+  geom_label_repel(data = subset(data, 
+                                 total_points > 45), # add names to points w/ score over X
+                   color = "black", 
+                   nudge_y = 3) +
+  facet_wrap(~ position, nrow = 1) + 
+  theme_minimal() + 
+  theme(legend.position = "none")
+```
+  
+Consistent, positive relationships between form & total points in every position.  For now, form looks like a **good** metric to utilize to predict the top scoring players in every position.   
+**Warning** As the season goes on and players' accumulate games, we should expect the relationship between form and total points to become fuzzier. A player's performance in a given window can wax and wain but the points they score are permanent. Keep that in mind before selling a player that is likely to reboiund in form.  
+  
+### Influence
+
+FPL defines influece as the accummulated "decisive actions like goals and assists" or "crucial defensive actions" that could substantially influence a game. That sounds pretty vague to me, but let's see what the data look like:  
+
+```{r}
+ggplot(data, aes(x = influence, y = total_points, label = second_name, fill = position)) + 
+        labs(x = "Influence", y = "Total Points") + 
+        geom_point(shape = 21,size = 3, alpha = .5, 
+                   position = position_jitter(width = 1)) +
+        stat_smooth(method = "lm", color = "black") + 
+        scale_fill_manual(values = positionPalette$color) + 
+        geom_label_repel(data = subset(data, 
+                                 total_points > 45), # add names to points w/ score over X
+                   color = "black", 
+                   nudge_y = 3) +
+        facet_wrap(~ position, nrow = 1) + 
+        theme_minimal() + 
+        theme(legend.position = "none")
+```
+  
+The first thing that jumps out at me is that a lot of the same names that appeared in our last figure are showing up again here. So, the players that are in good form, are also heavily influencing the games they play in, and this translates into FPL points.  
+
+My eye is drawn to the same positive relationship across all positions, but the relationship looks the **least** fuzzy and the **steepest** when looking at forwards. This is not surprising. In football, nothing infleunces a game like scoring goals so it is not surprising that small accumulating shots and goals has a **rapid** influence on a players' FPL points. 
+  
+### Creativity
+  
+Thespian types will be pleased to see a variable like creativity floating around but what the heck does it mean on the soccer pitch? According to FPL, creativity" "assesses player performance in terms of producing goal scoring opportunities for others. It can be used as a guide to identify the players most likely to supply assists. While this analyses frequency of passing and crossing, it also considers pitch location and the incisiveness of the final ball."  
+  
+So, creativity is basically a predictor of assists and assists = FPL points. My bet is that this metric will be most relevant in midfielders and strikers, and practically meaningless for goalkeepers.  
+```{r}
+# create individual figures: 
+ggplot(data, aes(x = creativity, total_points, label = second_name, fill = position)) + 
+        labs(x = "Creativity", y = "Total Points") + 
+        geom_point(shape = 21,size = 3, alpha = .5, 
+                   position = position_jitter(width = 1)) +
+        stat_smooth(method = "lm", color = "black") + 
+        scale_fill_manual(values = positionPalette$color) + 
+        geom_label_repel(data = subset(data, 
+                                 total_points > 45), # add names to points w/ score over X
+                   color = "black", 
+                   nudge_y = 3) +
+        facet_wrap(~ position, nrow = 1) + 
+        theme_minimal() + 
+        theme(legend.position = "none")
+```
+  
+  
+ There you have it. Look at our keepers. No variability in creativity and no relationship with points. The picture is only slightly beter in defenders. Looking at midfielders we see the most variability in creativity and a steep positive relationship with points. There is less variability creativity but creative players are also accumulating FPL points. 
+ 
+#### Skip the Nerd Stuff: 
+
+FPL ivory tower provides information about players' **"Form"**, **"Influence"**, and **"Creativity"**. These metrics are all positively correlated with total points, but their predictive value is not the same for every position.  
+
+**Form** is important for all players, but will become less important as the season progresses. 
+
+**Forwards**: prioritize players that are high on **influence**. 
+
+**Midfielders** prioritize players that are high on **infuence** and **creativity**
+
+**Defenders** prioritize players that are high on **influence**. 
+  
+  
+  
+### The value of "Player Value"  
+  
+Yeah, you want to own all of the best and shiniest players but you can't. **Just like in real life, you can't afford it.** So we hunt for "value". Which players offer the most points for the least amount of money? One way to ask this question is: How many points per 1 mil pounds can I expect from a player?   
+
+$$ Value = Points / Cost $$
+  
+
+```{r}
+
+valueData <- wrangleFPL() %>% select(position, second_name, now_cost, value_season, total_points) %>%
+        mutate(value_season = as.numeric(value_season),
+               total_points = as.numeric(total_points)) %>% 
+        filter(total_points > 0) %>%
+        group_by(position) %>% 
+        top_n(5, wt = value_season) %>% 
+        ungroup()
+        
+ggplot(valueData, aes(reorder(second_name,-value_season), value_season, fill = position)) + 
+        geom_col(color = "black", alpha = .8) + 
+        scale_fill_manual(values = positionPalette$color) + # sourced from "FPL color palletes.R"
+        labs(x = "", y = "points/mil")  +
+        facet_wrap(~position, nrow = 1, scale = "free_x") + 
+        theme_gray() + 
+        theme(axis.text.x = element_text(size = 12, face = "bold", angle = 90, vjust = 0.5, hjust=1),
+              axis.text.y = element_text(size = 12, face = "bold"),
+              axis.title.y = element_text(size = 12, face = "bold", vjust = 2.5),
+              strip.text.x = element_text(size = 12, face = "bold"),
+              legend.position = "none")        
+        
+# # define minimum values for players at each position 
+# minKeepPrice <- 40 
+# minKeepPoints <- mean(valueData$total_points[valueData$position == "Goalkeeper" & 
+#                                                      valueData$now_cost == minKeepPrice])
+# minDefPrice <- 40
+# minDefPoints <- mean(valueData$total_points[valueData$position == "Defender" & 
+#                                                      valueData$now_cost == minDefPrice])
+# minMidPrice <- 45
+# minMidPoints <- mean(valueData$total_points[valueData$position == "Midfielder" & 
+#                                                      valueData$now_cost == minMidPrice])
+# minFwdPrice <- 45
+# minFwdPoints <- mean(valueData$total_points[valueData$position == "Forward" & 
+#                                                      valueData$now_cost == minFwdPrice])
+# 
+# valueData <- valueData %>% 
+#         mutate(value_plus = ifelse(position == "Goalkeeper", 
+#                                    (total_points - minKeepPoints)/(now_cost - minKeepPrice),
+#                         ifelse(position == "Defender", 
+#                                 (total_points - minDefPoints)/(now_cost - minDefPrice),
+#                         ifelse(position == "Midfielder", 
+#                                 (total_points - minMidPoints)/(now_cost - minMidPrice),
+#                         ifelse(position == "Forward", 
+#                                 (total_points - minFwdPoints)/(now_cost-minFwdPrice),value_season)))),
+#                value_plus = as.numeric(value_plus)) %>% # convert to numeric
+#         filter(!is.nan(value_plus)) %>% # remove NaN (division by 0 for some players) 
+#         mutate(value_plus = round(value_plus*10,1), 
+#                valueDiff = value_season - value_plus) 
+
+```
+  
+Now, the point of the game is to maximize **points** not value, so don't go hyperfocusing on getting the names you see here. But this figure provides us some comfort that the players we have been talking about (Zouma, DCL, Grealish, and Son) appear in top 5 value picks for their positions.  
+  
+
+#### Revised Value Formula: UNDER CONSTRUCTION!!!!!!
+
+Can we improve our value formula?  
+  
+**Value^+** = (Points - Avg. Points of minimum costing player) / (Price - Minimum Price)
+  
+  
+  
+  
+## **Looking Ahead**
+  
+### Gameweek 8 Fixtures
+```{r  out.width = "100%", out.height = "35%"}
+include_graphics("/Users/brandon/Desktop/FPL Tool/images/fixtures.jpg") 
+```
+
+**Notable**: Fans of the game will drooling over Sunday's match between current champions **Liverpool** and god's team **Manchester City**. However, given the datat that we have seen so far, fantasy managers will be banking up on **Chelsea** to be another team to put **Sheffield United** to to the sword. 
+
+
+### My Gameweek 8 Team 
+```{r  out.width = "75%", out.height = "35%"}
+include_graphics("/Users/brandon/Desktop/FPL Tool/images/team.jpg") 
+```
+
+**Transfers**  
+In the midfiled, I transferred in **Wilfred Zaha** as cover for an injured **James Rodriquez**. Their underlying stats suggest similar output so while James is the sexier option, I'm sticking with Zaha for a couple weeks. 
+
+**Commitments**  
+At teh front, I am sticking it out with **Timo Werner** who has underperformed to fans expectations, but has started scoring. The next couple of weeks will tell us if he will manage to adjust to the English game. 
+
+  
+## Gameweek 8 suggestions and Parting Thoughts:  
+
+###  TL;DR Selections: 
+  
+#### Casting call for the poor man's Ryan Gosling:  
+Look to **Harry Kane** his explosive goal **and** assist output. 
+```{r  out.width = "100%", out.height = "10%"}
+include_graphics("/Users/brandon/Desktop/FPL Tool/images/kane.jpg") 
+```
+  
+#### Blue-Steel Striker   
+Look to **DCL** for his consistent goal output, with the caveat that he relies heavily on his team mates for assists. If the goals dry up for him, so do your fantasy points. 
+
+```{r  out.width = "100%", out.height = "10%"}
+include_graphics("/Users/brandon/Desktop/FPL Tool/images/dcl.jpg") 
+```
+
+#### Bargain Bin:  
+**Callum Wilson** looks reborn at **Newcastle**, is getting penalty calls, and could be a nice cheap option to play alongside any of the more favorable (but expensive) options mentioned above. 
+
+```{r  out.width = "100%", out.height = "10%"}
+include_graphics("/Users/brandon/Desktop/FPL Tool/images/wilson.jpg") 
+```
+  
+  
+### In the Middle:  
+There is no single player doing everything to recruit players focusing on what they can contribute to your team. Here are my picks:
+  
+#### I see you too Son.   
+Look to **Heung Min Son** for his **goal** output. 
+```{r  out.width = "100%", out.height = "10%"}
+include_graphics("/Users/brandon/Desktop/FPL Tool/images/son.jpg") 
+```
+  
+#### Oh, great... Grealish.   
+Having a punchable face and an obnoxious social media presence do not deter me from **Grealish**.
+Look to **Jack Grealish** for his **assist** record.  
+```{r  out.width = "100%", out.height = "10%"}
+include_graphics("/Users/brandon/Desktop/FPL Tool/images/grealish.jpg") 
+```
+  
+#### To the Bank 
+Don't you **ever** remove **Mo' Salah** from your team. If you do, he will come directly to your house and flex all over you and your family. This is the highest scoring fantasy player of. all time. 
+```{r  out.width = "100%", out.height = "10%"}
+include_graphics("/Users/brandon/Desktop/FPL Tool/images/salah.jpg") 
+```
+  
+  
+### At the back:  
+I'm going to be unfair. **Dougherty**'s departure from **Wolverhampton** has carved a path for **Saïss** to get into **Wolve**'s team, but **Saïss** does not possess any of the qualities that you want when bringing in a Wolve's defender. Clean sheets are fragile, few, and also far-between and remember: **A good defender in real life does not translate to a good fantasy assett!!!**. So, my advice: priortize recruiting defenders that have consistent attacking potential. Here are my picks:  
+  
+#### Still wearing blue: 
+Former **Leicester** now **Chelsea** player **Ben Chilwell** has been accumulating both attacking and defensive points of late. As an outiside back, he promises more attacking output than other defensive options (at Chelse or otherwise). Look to "**Ben** for his attacking output knowing that a clean sheet is also within the realm of possibility. 
+```{r  out.width = "100%", out.height = "10%"}
+include_graphics("/Users/brandon/Desktop/FPL Tool/images/chilwell.jpg") 
+```
+  
+#### Also still a blue... 
+Having finalized the swap from **Everton** to **Chelsea**, **Kurt Zouma** has been thumping in headed goals and paying back fantasy managers brave enough to take him in. For me, you are going to need to pick one of either **Zouma** or **Chilwell** to avoid being over-reliant on Chelsea's defense, but either selection is justifiable.
+```{r  out.width = "100%", out.height = "10%"}
+include_graphics("/Users/brandon/Desktop/FPL Tool/images/zouma.jpg") 
+```
+  
+  
+## Between the Sticks 
+  
+Counter-intuitively, you don't want the highest scoring keeper since they are probably too expensive. That expense hinders you from getting outfield players that pay off more in the long term. Get in **James McCarthy** at **Southampton** and don't over think things. 
+  
+```{r  out.width = "100%", out.height = "10%"}
+include_graphics("/Users/brandon/Desktop/FPL Tool/images/mccarthy.jpg") 
+```
+  
+### Until Next Time...
+  
+Keep calm, keep in mind: It's only a (beautiful!) game. I'll be spending the week ignoring my own advice and paying the price. See you ahead of **Gameweek 9**!   
+  
+```{r  out.width = "100%", out.height = "35%"}
+include_graphics("/Users/brandon/Desktop/FPL Tool/images/calm.jpg") 
+``` 
